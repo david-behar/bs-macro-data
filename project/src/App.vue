@@ -4,7 +4,57 @@
       <div class="dku-medium-title-sb q-pa-md">Header</div>
     </template>
     <template #leftpanel>
-      <div class="dku-medium-title-sb q-pa-md">Left Panel</div>
+      <div class="dku-medium-title-sb q-pa-md">Selectors</div>
+      <BsSelect 
+            v-model="geo_model" 
+            :options="geo_options" 
+            clearable 
+            multiple 
+            use-chips 
+            bsLabel="Geography"
+            clear-icon="clear" 
+            @filter="filterFn"
+            use-input
+            input-debounce="0">
+            <template v-slot:selected-item="scope">
+                <q-chip
+                    removable
+                    square
+                    @remove="scope.removeAtIndex(scope.index)"
+                    :tabindex="scope.tabindex"
+                    class="q-mr-xs bs-chip__select"
+                    icon-remove="clear"
+                    text-color="white">
+                    {{ scope.opt }}
+                </q-chip>
+            </template>
+        </BsSelect>
+        <BsDateRange v-model="date_model" bsLabel="Date"></BsDateRange>
+        <BsToggle v-model="type_model" labelRight="Eurostat" labelLeft="BLS"/>
+        <BsSelect 
+            v-model="series_model" 
+            :options="series_options" 
+            clearable 
+            multiple 
+            use-chips 
+            bsLabel="Series"
+            clear-icon="clear" 
+            @filter="filterFn"
+            use-input
+            input-debounce="0">
+            <template v-slot:selected-item="scope">
+                <q-chip
+                    removable
+                    square
+                    @remove="scope.removeAtIndex(scope.index)"
+                    :tabindex="scope.tabindex"
+                    class="q-mr-xs bs-chip__select"
+                    icon-remove="clear"
+                    text-color="white">
+                    {{ scope.opt }}
+                </q-chip>
+            </template>
+        </BsSelect>
     </template>
     <template #documentation>
       <p class="dku-small-title">Description 1</p>
@@ -40,7 +90,15 @@
     data() {
       return {
         docLogo,
-        hello: ""
+        hello: "",
+        geo_model: [],
+        geo_options: ['Dataiku','Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'],
+        geo_allOptions: ['Dataiku','Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'],
+        series_model: [],
+        series_options: ['Dataiku','Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'],
+        series_allOptions: ['Dataiku','Google', 'Facebook', 'Twitter', 'Apple', 'Oracle'],
+        date_model: { from: '2020/07/08', to: '2020/07/17' },
+        type_model: true,
       }
     },
     mounted: function() {
@@ -50,6 +108,25 @@
       }).catch((err) => {
         console.log(err);
       })
-    }
+    },
+    created() {
+          API.getBlsLabel().then(response => {
+              this.bls_label = response;
+          })
+          API.getEurostatLabel().then(response => {
+              this.eurostat_label = response;
+          })
+          API.getFeatureRanges().then(response => {
+              this.feature_ranges = response;
+          })
+      },
+    methods: {
+          filterFn: function(val, update, abort) {
+              update(() => {
+              const needle = val.toLowerCase()
+              this.options = this.allOptions.filter(v => v.toLowerCase().indexOf(needle) > -1)
+              })
+          }
+      }
   }
 </script>
